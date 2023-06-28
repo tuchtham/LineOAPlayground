@@ -25,7 +25,16 @@ func (h *MessageHandler) MapResponse(input string) *linebot.SendingMessage {
 			"footer lol",
 			"block preview",
 		)
-	case inquireRefund:
+	case string(fixedMessageInquireRefund):
+		return h.askSameDay()
+	case string(fixedMessageChoiceSameDayYes):
+		return h.ask2000()
+	case string(fixedMessageChoiceSameDayNo):
+		return h.newBlockRefund()
+	case string(fixedMessageChoice2000Before):
+		return h.newBlockVoid()
+	case string(fixedMessageChoice2000After):
+		return h.newBlockRefund()
 	default:
 		return h.newTextMessage(input)
 	}
@@ -73,6 +82,7 @@ func (h *MessageHandler) newBlock(header string, body string, footer string, pre
 					&linebot.TextComponent{
 						Type: linebot.FlexComponentTypeText,
 						Text: header,
+						Wrap: true,
 					},
 				}},
 			Hero: &linebot.ImageComponent{
@@ -98,10 +108,45 @@ func (h *MessageHandler) newBlock(header string, body string, footer string, pre
 					&linebot.TextComponent{
 						Type: linebot.FlexComponentTypeText,
 						Text: footer,
+						Wrap: true,
 					},
 				},
 			},
 		})
 	sendingMessage := block.WithQuickReplies(nil)
 	return &sendingMessage
+}
+
+func (h *MessageHandler) askSameDay() *linebot.SendingMessage {
+	return h.newTextMessageWithQuickReplies(
+		string(fixedMessageQuestionSameDay),
+		string(fixedMessageChoiceSameDayYes),
+		string(fixedMessageChoiceSameDayNo),
+	)
+}
+
+func (h *MessageHandler) ask2000() *linebot.SendingMessage {
+	return h.newTextMessageWithQuickReplies(
+		string(fixedMessageQuestion2000),
+		string(fixedMessageChoice2000Before),
+		string(fixedMessageChoice2000After),
+	)
+}
+
+func (h *MessageHandler) newBlockRefund() *linebot.SendingMessage {
+	return h.newBlock(
+		string(fixedMessageRefundHeader),
+		string(fixedMessageRefundBody),
+		string(fixedMessageDefaultFooter),
+		"Refund Methods",
+	)
+}
+
+func (h *MessageHandler) newBlockVoid() *linebot.SendingMessage {
+	return h.newBlock(
+		string(fixedMessageVoidHeader),
+		string(fixedMessageVoidBody),
+		string(fixedMessageDefaultFooter),
+		"Void Methods",
+	)
 }
